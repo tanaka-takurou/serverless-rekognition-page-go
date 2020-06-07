@@ -15,6 +15,9 @@ body > h1 {
 .column {
   max-width: 450px;
 }
+#preview {
+  max-width: 100%;
+}
 </style>{{end}}
 {{define "main.js"}}
 <script type="text/javascript">
@@ -82,6 +85,7 @@ var SubmitForm = function() {
   request(data, (res)=>{
     $("#result").text(res.message);
     $("#info").removeClass("hidden").addClass("visible");
+    ScrollBottom();
   }, (e)=>{
     console.log(e.responseJSON.message);
     $("#warning").text(e.responseJSON.message).removeClass("hidden").addClass("visible");
@@ -105,6 +109,11 @@ var request = function(data, callback, onerror) {
     onerror(e);
   });
 };
+
+var ScrollBottom = function() {
+  var bottom = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  window.scroll(0, bottom);
+}
 
 var App = { token: '', imgdata: null };
 

@@ -27,6 +27,7 @@ type Response events.APIGatewayProxyResponse
 func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
 	tmp := template.New("tmp")
 	var dat PageData
+	r := request.Resource
 	funcMap := template.FuncMap{
 		"safehtml": func(text string) template.HTML { return template.HTML(text) },
 		"add": func(a, b int) int { return a + b },
@@ -41,11 +42,17 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 	json.Unmarshal(jsonString, constant)
 	dat.Title = constant.Title
 	dat.Api = constant.Api
-	tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index.html", "templates/view.html", "templates/header.html"))
+	if r == "/detect/text" {
+		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index_text.html", "templates/view.html", "templates/header.html"))
+	} else if r == "/detect/faces" {
+		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index_faces.html", "templates/view.html", "templates/header.html"))
+	} else if r == "/detect/labels" {
+		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index_labels.html", "templates/view.html", "templates/header.html"))
+	} else {
+		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index.html", "templates/view.html", "templates/header.html"))
+	}
 	if e := tmp.ExecuteTemplate(fw, "base", dat); e != nil {
 		log.Fatal(e)
-	} else {
-		log.Print("Event received.")
 	}
 	res := Response{
 		StatusCode:      200,

@@ -7,14 +7,14 @@
   <body>
     <div class="ui fixed inverted menu">
       <div class="ui container">
-        <a href="/" class="active item">Detect Moderation</a>
+        <a href="/" class="item">Detect Moderation</a>
         <a href="/detect/text" class="item">Detect Text</a>
         <a href="/detect/labels" class="item">Detect Labels</a>
-        <a href="/detect/faces" class="item">Detect Faces</a>
+        <a href="/detect/faces" class="active item">Detect Faces</a>
       </div>
     </div>
     <h1 class="ui center aligned header">Rekognition</h1>
-    <h2 class="ui center aligned header">Detect Moderation Labels</h2>
+    <h2 class="ui center aligned header">Detect Faces</h2>
     <div class="main ui container">
       <form class="ui segment" method="POST">
         <div class="content">
@@ -33,7 +33,7 @@
             </div>
           </div>
         </div>
-        <input id="action" type="hidden" name="action" value="detectmoderation">
+        <input id="action" type="hidden" name="action" value="detectfaces">
       </form>
     </div>
     <div id="warning" class="ui hidden warning message"></div>
