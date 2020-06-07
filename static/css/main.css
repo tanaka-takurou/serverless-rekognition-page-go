@@ -14,3 +14,6 @@ body > h1 {
 .column {
   max-width: 450px;
 }
+#preview {
+  max-width: 100%;
+}
