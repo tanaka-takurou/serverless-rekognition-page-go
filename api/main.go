@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"log"
 	"strings"
@@ -91,7 +92,7 @@ func detectModeration(img string)(string, error) {
 		return "", err
 	}
 	svc := rekognition.New(session.New(), &aws.Config{
-		Region: aws.String("ap-northeast-1"),
+		Region: aws.String(os.Getenv("REGION")),
 	})
 
 	input := &rekognition.DetectModerationLabelsInput{
