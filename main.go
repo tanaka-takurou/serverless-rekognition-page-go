@@ -2,32 +2,28 @@ package main
 
 import (
 	"io"
+	"os"
 	"log"
 	"bytes"
 	"context"
-	"io/ioutil"
 	"html/template"
-	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type PageData struct {
-	Title string
-	Api   string
-}
-
-type ConstantData struct {
-	Title string `json:"title"`
-	Api   string `json:"api"`
+	Title   string
+	ApiPath string
 }
 
 type Response events.APIGatewayProxyResponse
 
+const title string = "Sample Rekognition Page"
+
 func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
 	tmp := template.New("tmp")
 	var dat PageData
-	r := request.Resource
+	p := request.PathParameters
 	funcMap := template.FuncMap{
 		"safehtml": func(text string) template.HTML { return template.HTML(text) },
 		"add": func(a, b int) int { return a + b },
@@ -37,16 +33,13 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 	}
 	buf := new(bytes.Buffer)
 	fw := io.Writer(buf)
-	jsonString, _ := ioutil.ReadFile("constant/constant.json")
-	constant := new(ConstantData)
-	json.Unmarshal(jsonString, constant)
-	dat.Title = constant.Title
-	dat.Api = constant.Api
-	if r == "/detect/text" {
+	dat.Title = title
+	dat.ApiPath = os.Getenv("API_PATH")
+	if p["proxy"] == "detect-text" {
 		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index_text.html", "templates/view.html", "templates/header.html"))
-	} else if r == "/detect/faces" {
+	} else if p["proxy"] == "detect-faces" {
 		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index_faces.html", "templates/view.html", "templates/header.html"))
-	} else if r == "/detect/labels" {
+	} else if p["proxy"] == "detect-labels" {
 		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index_labels.html", "templates/view.html", "templates/header.html"))
 	} else {
 		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index.html", "templates/view.html", "templates/header.html"))

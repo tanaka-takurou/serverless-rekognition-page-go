@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Rekognition Page
+
+Parameters:
+  ApplicationName:
+    Type: String
+    Default: 'ServerlessRekognitionPage'
+  FrontPageApiStageName:
+    Type: String
+    Default: 'ProdStage'
+
+Resources:
+  FrontPageApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: ServerlessRekognitionPageApi
+      EndpointConfiguration: REGIONAL
+      StageName: !Ref FrontPageApiStageName
+  FrontPageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ServerlessRekognitionPageFrontFunction
+      CodeUri: bin/
+      Handler: main
+      MemorySize: 256
+      Runtime: go1.x
+      Description: 'Test Front Function'
+      Policies:
+      Environment:
+        Variables:
+          REGION: !Ref 'AWS::Region'
+          API_PATH: !Join [ '', [ '/', !Ref FrontPageApiStageName, '/api'] ]
+      Events:
+        FrontRootApi:
+          Type: Api
+          Properties:
+            Path: '/'
+            Method: get
+            RestApiId: !Ref FrontPageApi
+        FrontProxyApi:
+          Type: Api
+          Properties:
+            Path: '/{proxy+}'
+            Method: get
+            RestApiId: !Ref FrontPageApi
+  MainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: ServerlessRekognitionPageApiFunction
+      CodeUri: api/bin/
+      Handler: main
+      MemorySize: 256
+      Runtime: go1.x
+      Description: 'Test Rekognition Function'
+      Policies:
+      - RekognitionDetectOnlyPolicy: {}
+      Environment:
+        Variables:
+          REGION: !Ref 'AWS::Region'
+      Events:
+        FrontPageApi:
+          Type: Api
+          Properties:
+            Path: '/api'
+            Method: post
+            RestApiId: !Ref FrontPageApi
+
+Outputs:
+  APIURI:
+    Description: "URI"
+    Value: !Join [ '', [ 'https://', !Ref FrontPageApi, '.execute-api.',!Ref 'AWS::Region','.amazonaws.com/',!Ref FrontPageApiStageName,'/'] ]

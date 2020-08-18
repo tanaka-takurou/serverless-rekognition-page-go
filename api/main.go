@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"fmt"
 	"log"
 	"strings"
@@ -21,7 +22,6 @@ type APIResponse struct {
 type Response events.APIGatewayProxyResponse
 
 const layout       string = "2006-01-02 15:04"
-const languageCode string = "ja"
 
 func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (Response, error) {
 	var jsonBytes []byte
@@ -91,7 +91,7 @@ func detectModeration(img string)(string, error) {
 		return "", err
 	}
 	svc := rekognition.New(session.New(), &aws.Config{
-		Region: aws.String("ap-northeast-1"),
+		Region: aws.String(os.Getenv("REGION")),
 	})
 
 	input := &rekognition.DetectModerationLabelsInput{
