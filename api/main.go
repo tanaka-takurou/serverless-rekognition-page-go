@@ -12,8 +12,9 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/rekognition"
+	"github.com/aws/aws-sdk-go-v2/service/rekognition/types"
 )
 
 type APIResponse struct {
@@ -22,7 +23,6 @@ type APIResponse struct {
 
 type Response events.APIGatewayProxyResponse
 
-var cfg aws.Config
 var rekognitionClient *rekognition.Client
 
 const layout string = "2006-01-02 15:04"
@@ -89,7 +89,7 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 
 func detectModeration(ctx context.Context, img string)(string, error) {
 	if rekognitionClient == nil {
-		rekognitionClient = rekognition.New(cfg)
+		rekognitionClient = getRekognitionClient()
 	}
 	b64data := img[strings.IndexByte(img, ',')+1:]
 	data, err := base64.StdEncoding.DecodeString(b64data)
@@ -99,19 +99,18 @@ func detectModeration(ctx context.Context, img string)(string, error) {
 	}
 
 	input := &rekognition.DetectModerationLabelsInput{
-		Image: &rekognition.Image{
+		Image: &types.Image{
 			Bytes: data,
 		},
 	}
-	req := rekognitionClient.DetectModerationLabelsRequest(input)
-	res, err2 := req.Send(ctx)
+	res, err2 := rekognitionClient.DetectModerationLabels(ctx, input)
 	if err2 != nil {
 		return "", err2
 	}
-	if len(res.DetectModerationLabelsOutput.ModerationLabels) < 1 {
+	if len(res.ModerationLabels) < 1 {
 		return "No ModerationLabel", nil
 	}
-	results, err3 := json.Marshal(res.DetectModerationLabelsOutput.ModerationLabels)
+	results, err3 := json.Marshal(res.ModerationLabels)
 	if err3 != nil {
 		return "", err3
 	}
@@ -120,7 +119,7 @@ func detectModeration(ctx context.Context, img string)(string, error) {
 
 func detectText(ctx context.Context, img string)(string, error) {
 	if rekognitionClient == nil {
-		rekognitionClient = rekognition.New(cfg)
+		rekognitionClient = getRekognitionClient()
 	}
 	b64data := img[strings.IndexByte(img, ',')+1:]
 	data, err := base64.StdEncoding.DecodeString(b64data)
@@ -130,19 +129,18 @@ func detectText(ctx context.Context, img string)(string, error) {
 	}
 
 	input := &rekognition.DetectTextInput{
-		Image: &rekognition.Image{
+		Image: &types.Image{
 			Bytes: data,
 		},
 	}
-	req := rekognitionClient.DetectTextRequest(input)
-	res, err2 := req.Send(ctx)
+	res, err2 := rekognitionClient.DetectText(ctx, input)
 	if err2 != nil {
 		return "", err2
 	}
-	if len(res.DetectTextOutput.TextDetections) < 1 {
+	if len(res.TextDetections) < 1 {
 		return "No TextDetection", nil
 	}
-	results, err3 := json.Marshal(res.DetectTextOutput.TextDetections)
+	results, err3 := json.Marshal(res.TextDetections)
 	if err3 != nil {
 		return "", err3
 	}
@@ -151,7 +149,7 @@ func detectText(ctx context.Context, img string)(string, error) {
 
 func detectFaces(ctx context.Context, img string)(string, error) {
 	if rekognitionClient == nil {
-		rekognitionClient = rekognition.New(cfg)
+		rekognitionClient = getRekognitionClient()
 	}
 	b64data := img[strings.IndexByte(img, ',')+1:]
 	data, err := base64.StdEncoding.DecodeString(b64data)
@@ -161,19 +159,18 @@ func detectFaces(ctx context.Context, img string)(string, error) {
 	}
 
 	input := &rekognition.DetectFacesInput{
-		Image: &rekognition.Image{
+		Image: &types.Image{
 			Bytes: data,
 		},
 	}
-	req := rekognitionClient.DetectFacesRequest(input)
-	res, err2 := req.Send(ctx)
+	res, err2 := rekognitionClient.DetectFaces(ctx, input)
 	if err2 != nil {
 		return "", err2
 	}
-	if len(res.DetectFacesOutput.FaceDetails) < 1 {
+	if len(res.FaceDetails) < 1 {
 		return "No FaceDetails", nil
 	}
-	results, err3 := json.Marshal(res.DetectFacesOutput.FaceDetails)
+	results, err3 := json.Marshal(res.FaceDetails)
 	if err3 != nil {
 		return "", err3
 	}
@@ -182,7 +179,7 @@ func detectFaces(ctx context.Context, img string)(string, error) {
 
 func detectLabels(ctx context.Context, img string)(string, error) {
 	if rekognitionClient == nil {
-		rekognitionClient = rekognition.New(cfg)
+		rekognitionClient = getRekognitionClient()
 	}
 	b64data := img[strings.IndexByte(img, ',')+1:]
 	data, err := base64.StdEncoding.DecodeString(b64data)
@@ -192,34 +189,33 @@ func detectLabels(ctx context.Context, img string)(string, error) {
 	}
 
 	input := &rekognition.DetectLabelsInput{
-		Image: &rekognition.Image{
+		Image: &types.Image{
 			Bytes: data,
 		},
-		MaxLabels: aws.Int64(10),
-		MinConfidence: aws.Float64(60.0),
+		MaxLabels: aws.Int32(10),
+		MinConfidence: aws.Float32(60.0),
 	}
-	req := rekognitionClient.DetectLabelsRequest(input)
-	res, err2 := req.Send(ctx)
+	res, err2 := rekognitionClient.DetectLabels(ctx, input)
 	if err2 != nil {
 		return "", err2
 	}
-	if len(res.DetectLabelsOutput.Labels) < 1 {
+	if len(res.Labels) < 1 {
 		return "No Labels", nil
 	}
-	results, err3 := json.Marshal(res.DetectLabelsOutput.Labels)
+	results, err3 := json.Marshal(res.Labels)
 	if err3 != nil {
 		return "", err3
 	}
 	return string(results), nil
 }
 
-func init() {
-	var err error
-	cfg, err = external.LoadDefaultAWSConfig()
-	cfg.Region = os.Getenv("REGION")
+func getRekognitionClient() *rekognition.Client {
+	cfg, err := config.LoadDefaultConfig()
 	if err != nil {
 		log.Print(err)
 	}
+	cfg.Region = os.Getenv("REGION")
+	return rekognition.NewFromConfig(cfg)
 }
 
 func main() {
