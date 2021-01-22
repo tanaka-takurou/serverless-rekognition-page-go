@@ -89,7 +89,7 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 
 func detectModeration(ctx context.Context, img string)(string, error) {
 	if rekognitionClient == nil {
-		rekognitionClient = getRekognitionClient()
+		rekognitionClient = getRekognitionClient(ctx)
 	}
 	b64data := img[strings.IndexByte(img, ',')+1:]
 	data, err := base64.StdEncoding.DecodeString(b64data)
@@ -119,7 +119,7 @@ func detectModeration(ctx context.Context, img string)(string, error) {
 
 func detectText(ctx context.Context, img string)(string, error) {
 	if rekognitionClient == nil {
-		rekognitionClient = getRekognitionClient()
+		rekognitionClient = getRekognitionClient(ctx)
 	}
 	b64data := img[strings.IndexByte(img, ',')+1:]
 	data, err := base64.StdEncoding.DecodeString(b64data)
@@ -149,7 +149,7 @@ func detectText(ctx context.Context, img string)(string, error) {
 
 func detectFaces(ctx context.Context, img string)(string, error) {
 	if rekognitionClient == nil {
-		rekognitionClient = getRekognitionClient()
+		rekognitionClient = getRekognitionClient(ctx)
 	}
 	b64data := img[strings.IndexByte(img, ',')+1:]
 	data, err := base64.StdEncoding.DecodeString(b64data)
@@ -179,7 +179,7 @@ func detectFaces(ctx context.Context, img string)(string, error) {
 
 func detectLabels(ctx context.Context, img string)(string, error) {
 	if rekognitionClient == nil {
-		rekognitionClient = getRekognitionClient()
+		rekognitionClient = getRekognitionClient(ctx)
 	}
 	b64data := img[strings.IndexByte(img, ',')+1:]
 	data, err := base64.StdEncoding.DecodeString(b64data)
@@ -209,8 +209,8 @@ func detectLabels(ctx context.Context, img string)(string, error) {
 	return string(results), nil
 }
 
-func getRekognitionClient() *rekognition.Client {
-	cfg, err := config.LoadDefaultConfig()
+func getRekognitionClient(ctx context.Context) *rekognition.Client {
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		log.Print(err)
 	}
