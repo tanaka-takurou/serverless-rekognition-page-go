@@ -5,6 +5,7 @@ import (
 	"os"
 	"log"
 	"bytes"
+	"embed"
 	"context"
 	"html/template"
 	"github.com/aws/aws-lambda-go/events"
@@ -17,6 +18,9 @@ type PageData struct {
 }
 
 type Response events.APIGatewayProxyResponse
+
+//go:embed templates
+var templateFS embed.FS
 
 const title string = "Sample Rekognition Page"
 
@@ -36,13 +40,13 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 	dat.Title = title
 	dat.ApiPath = os.Getenv("API_PATH")
 	if p["proxy"] == "detect-text" {
-		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index_text.html", "templates/view.html", "templates/header.html"))
+		tmp = template.Must(template.New("").Funcs(funcMap).ParseFS(templateFS, "templates/index_text.html", "templates/view.html", "templates/header.html"))
 	} else if p["proxy"] == "detect-faces" {
-		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index_faces.html", "templates/view.html", "templates/header.html"))
+		tmp = template.Must(template.New("").Funcs(funcMap).ParseFS(templateFS, "templates/index_faces.html", "templates/view.html", "templates/header.html"))
 	} else if p["proxy"] == "detect-labels" {
-		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index_labels.html", "templates/view.html", "templates/header.html"))
+		tmp = template.Must(template.New("").Funcs(funcMap).ParseFS(templateFS, "templates/index_labels.html", "templates/view.html", "templates/header.html"))
 	} else {
-		tmp = template.Must(template.New("").Funcs(funcMap).ParseFiles("templates/index.html", "templates/view.html", "templates/header.html"))
+		tmp = template.Must(template.New("").Funcs(funcMap).ParseFS(templateFS, "templates/index.html", "templates/view.html", "templates/header.html"))
 	}
 	if e := tmp.ExecuteTemplate(fw, "base", dat); e != nil {
 		log.Fatal(e)
